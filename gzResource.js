@@ -391,6 +391,11 @@ angular.module('gzResource', ['ng']).
     }
 
     Route.prototype = {
+      getUrlParams: function(params, actionUrl) {
+        var o = {};
+        this.setUrlParams(o, params, actionUrl);
+        return o;
+      },
       setUrlParams: function(config, params, actionUrl) {
         var self = this,
             url = actionUrl || self.template,
@@ -471,6 +476,9 @@ angular.module('gzResource', ['ng']).
 
       function Resource(value){
         shallowClearAndCopy(value || {}, this);
+        if (this.onModelCreated) {
+          this.onModelCreated();
+        }
       }
 
       forEach(actions, function(action, name) {
@@ -535,6 +543,15 @@ angular.module('gzResource', ['ng']).
                              extend({}, extractParams(data, action.params || {}), params),
                              action.url);
 
+
+          //TODO: with some of the above code, we should be able to create a urlGetter that
+          //      does not rely on a request having been made - i.e. new Resource({ data })
+          //      and then we can construct the URL from the data...
+          var urlParamsObject = extend({}, httpConfig); //shallow copy, so any objects attached to httpConfig are subject to change
+          var urlParamsGetter = function() {
+            return urlParamsObject;
+          };
+
           var promise = $http(httpConfig).then(function (response) {
             var data = response.data,
               promise = value.$promise;
@@ -566,6 +583,18 @@ angular.module('gzResource', ['ng']).
                 shallowClearAndCopy(data, value);
                 value.$promise = promise;
               }
+            }
+
+            //In case last method was a POST (for example) we don't override URL
+            //we only save URL on GET requests.
+            //TODO: CHECK that hopefully this method survives multiple requests, eg
+            //      if we start with a get(), we have the getUrl() method, then we do
+            //      a POST, which does not re-set the getUrl() method, hopefully the
+            //      original getUrl() method survives this and we still have it
+            if (urlParamsGetter().method === "GET") {
+              value.getUrl = function() {
+                return urlParamsGetter().url;
+              };
             }
 
             value.$resolved = true;
