@@ -483,7 +483,13 @@ angular.module('gzResource', ['ng']).
           //      to it - the point was meant to be to allow access to internals
           //      from outside to create an extension point. This doesn't really
           //      acheive that...
+          //      Perhaps we need to add arguments from resourceFactory() call
+          //      and the Route helper methods, etc? Not sure if that goes to
+          //      the arguments of this method, or are attached to this object?
           this.$onModelCreated();
+        }
+        else {
+          console.log('NO ONMODELCREATED HANDLER FOR:', this);
         }
       }
 
