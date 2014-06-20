@@ -538,13 +538,6 @@ angular.module('gzResource', ['ng']).
 
           var isInstanceCall = this instanceof Resource;
           var ResourceClass;
-          //if (!isInstanceCall) {
-            //ResourceClass = this; //static call, such as Wish.get() so "this" is the ResourceClass
-          //}
-          //else {
-            //ResourceClass = this.constructor; //TODO: check if this works..
-          //}
-
           var value = isInstanceCall ? data : (action.isArray ? [] : new Resource(data));
           var httpConfig = {};
           var responseInterceptor = action.interceptor && action.interceptor.response ||
