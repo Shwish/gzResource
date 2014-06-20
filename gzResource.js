@@ -1,7 +1,7 @@
 /**
  * @license
  * (c) 2014 Grazanaut/JackoKaiser/Shwish
- * https://github.com/grazanaut/gzResource
+ * https://github.com/grazanaut/$resource
  * License: MIT
  *
  * @license Original Licence:
@@ -54,20 +54,22 @@ function shallowClearAndCopy(src, dst) {
   return dst;
 }
 
+
+
 /**
  * @ngdoc module
- * @name ngResource
+ * @name gzResource
  * @description
  *
- * # ngResource
+ * # gzResource
  *
- * The `ngResource` module provides interaction support with RESTful services
+ * The `gzResource` module provides interaction support with RESTful services
  * via the $resource service.
  *
  *
- * <div doc-module-components="ngResource"></div>
+ * <div doc-module-components="gzResource"></div>
  *
- * See {@link ngResource.$resource `$resource`} for usage.
+ * See {@link gzResource.$resource `$resource`} for usage.
  */
 
 /**
@@ -82,7 +84,7 @@ function shallowClearAndCopy(src, dst) {
  * The returned resource object has action methods which provide high-level behaviors without
  * the need to interact with the low level {@link ng.$http $http} service.
  *
- * Requires the {@link ngResource `ngResource`} module to be installed.
+ * Requires the {@link gzResource `gzResource`} module to be installed.
  *
  * @param {string} url A parametrized URL template with parameters prefixed by `:` as in
  *   `/user/:username`. If you are using a URL with a port number (e.g.
@@ -301,7 +303,7 @@ function shallowClearAndCopy(src, dst) {
  * # Creating a custom 'PUT' request
  * In this example we create a custom method on our resource to make a PUT request
  * ```js
- *		var app = angular.module('app', ['ngResource', 'ngRoute']);
+ *		var app = angular.module('app', ['gzResource', 'ngRoute']);
  *
  *		// Some APIs expect a PUT request in the format URL/object/ID
  *		// Here we are creating an 'update' method
@@ -327,7 +329,7 @@ function shallowClearAndCopy(src, dst) {
  *		}]);
  * ```
  */
-angular.module('ngResource', ['ng']).
+angular.module('gzResource', ['ng']).
   factory('$resource', ['$http', '$q', function($http, $q) {
 
     var DEFAULT_ACTIONS = {
