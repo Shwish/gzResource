@@ -391,11 +391,13 @@ angular.module('gzResource', ['ng']).
     }
 
     Route.prototype = {
-      getUrlParams: function(params, actionUrl) {
-        var o = {};
-        this.setUrlParams(o, params, actionUrl);
-        return o;
-      },
+      //TODO: getUrlParams() was added cos I thought we'd use it. We might still,
+      //      but leaving commented for now
+      //getUrlParams: function(params, actionUrl) {
+        //var o = {};
+        //this.setUrlParams(o, params, actionUrl);
+        //return o;
+      //},
       setUrlParams: function(config, params, actionUrl) {
         var self = this,
             url = actionUrl || self.template,
@@ -477,6 +479,10 @@ angular.module('gzResource', ['ng']).
       function Resource(value){
         shallowClearAndCopy(value || {}, this);
         if (this.$onModelCreated) {
+          //TODO: this is not really useful unless we pass closure variables
+          //      to it - the point was meant to be to allow access to internals
+          //      from outside to create an extension point. This doesn't really
+          //      acheive that...
           this.$onModelCreated();
         }
       }
@@ -590,8 +596,7 @@ angular.module('gzResource', ['ng']).
               } else {
                 shallowClearAndCopy(data, value);
                 value.$promise = promise;
-                //here we need to add the stuff we added in $onModelCreated()
-                //if (
+                //TODO: here is where $onModelCreated stuff didn't work (methods attached in it were not accesible). Test again
               }
             }
 
