@@ -476,8 +476,8 @@ angular.module('gzResource', ['ng']).
 
       function Resource(value){
         shallowClearAndCopy(value || {}, this);
-        if (this.onModelCreated) {
-          this.onModelCreated();
+        if (this.$onModelCreated) {
+          this.$onModelCreated();
         }
       }
 
@@ -592,7 +592,7 @@ angular.module('gzResource', ['ng']).
             //      a POST, which does not re-set the getUrl() method, hopefully the
             //      original getUrl() method survives this and we still have it
             if (urlParamsGetter().method === "GET") {
-              value.getUrl = function() {
+              value.$getUrl = function() {
                 return urlParamsGetter().url;
               };
             }
