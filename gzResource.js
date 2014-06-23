@@ -391,13 +391,7 @@ angular.module('gzResource', ['ng']).
     }
 
     Route.prototype = {
-      //TODO: getUrlParams() was added cos I thought we'd use it. We might still,
-      //      but leaving commented for now
-      //getUrlParams: function(params, actionUrl) {
-        //var o = {};
-        //this.setUrlParams(o, params, actionUrl);
-        //return o;
-      //},
+      //Original method to attach url and params property to config object (httpConfig)
       setUrlParams: function(config, params, actionUrl) {
         var self = this,
             url = actionUrl || self.template,
@@ -452,6 +446,14 @@ angular.module('gzResource', ['ng']).
             config.params[key] = value;
           }
         });
+      },
+      //New method to retrieve url and (query string) params from given params/data and actionUrl (template)
+      getUrlAndParams: function(params, actionUrl) {
+        //First argument of setUrlParams is "by reference" that is, modified.
+        //So we create an empty object to modify, so there are "no side effects"
+        var o = {};
+        this.setUrlParams(o, params, actionUrl);
+        return { url: o.url, params: o.params };
       }
     };
 
@@ -492,6 +494,14 @@ angular.module('gzResource', ['ng']).
           console.log('NO ONMODELCREATED HANDLER FOR:', this);
         }
       }
+
+      Resource.prototype.getUrlAndParamsFor = function(action) {
+        var urlAndParams = route.getUrlAndParams(
+          extend({}, extractParams(this, {}), {}),
+          actions[action].url //GET .url
+        );
+        return { url: urlAndParams.url, params: urlAndParams.params };
+      };
 
       forEach(actions, function(action, name) {
         var hasBody = /^(POST|PUT|PATCH)$/i.test(action.method);
@@ -556,14 +566,6 @@ angular.module('gzResource', ['ng']).
                              extend({}, extractParams(data, action.params || {}), params),
                              action.url);
 
-
-          //TODO: with some of the above code, we should be able to create a urlGetter that
-          //      does not rely on a request having been made - i.e. new Resource({ data })
-          //      and then we can construct the URL from the data...
-          var urlParamsObject = extend({}, httpConfig); //shallow copy, so any objects attached to httpConfig are subject to change
-          var urlParamsGetter = function() {
-            return urlParamsObject;
-          };
 
           var promise = $http(httpConfig).then(function (response) {
             var data = response.data,
