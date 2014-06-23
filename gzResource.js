@@ -495,7 +495,7 @@ angular.module('gzResource', ['ng']).
         }
       }
 
-      Resource.prototype.getUrlAndParamsFor = function(action) {
+      Resource.prototype.$getUrlAndParamsFor = function(action) {
         var urlAndParams = route.getUrlAndParams(
           extend({}, extractParams(this, {}), {}),
           actions[action].url //GET .url
