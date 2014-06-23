@@ -547,7 +547,6 @@ angular.module('gzResource', ['ng']).
           /* jshint +W086 */ /* (purposefully fall through case statements) */
 
           var isInstanceCall = this instanceof Resource;
-          var ResourceClass;
           var value = isInstanceCall ? data : (action.isArray ? [] : new Resource(data));
           var httpConfig = {};
           var responseInterceptor = action.interceptor && action.interceptor.response ||
@@ -565,7 +564,6 @@ angular.module('gzResource', ['ng']).
           route.setUrlParams(httpConfig,
                              extend({}, extractParams(data, action.params || {}), params),
                              action.url);
-
 
           var promise = $http(httpConfig).then(function (response) {
             var data = response.data,
@@ -599,18 +597,6 @@ angular.module('gzResource', ['ng']).
                 value.$promise = promise;
                 //TODO: here is where $onModelCreated stuff didn't work (methods attached in it were not accesible). Test again
               }
-            }
-
-            //In case last method was a POST (for example) we don't override URL
-            //we only save URL on GET requests.
-            //TODO: CHECK that hopefully this method survives multiple requests, eg
-            //      if we start with a get(), we have the getUrl() method, then we do
-            //      a POST, which does not re-set the getUrl() method, hopefully the
-            //      original getUrl() method survives this and we still have it
-            if (urlParamsGetter().method === "GET") {
-              value.$getUrl = function() {
-                return urlParamsGetter().url;
-              };
             }
 
             value.$resolved = true;
