@@ -491,7 +491,7 @@ angular.module('gzResource', ['ng']).
           this.$onModelCreated();
         }
         else {
-          console.log('NO ONMODELCREATED HANDLER FOR:', this);
+          //console.log('NO ONMODELCREATED HANDLER FOR:', this);
         }
       }
 
