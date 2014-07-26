@@ -452,6 +452,10 @@ angular.module('gzResource', ['ng']).
         //First argument of setUrlParams is "by reference" that is, modified.
         //So we create an empty object to modify, so there are "no side effects"
         var o = {};
+        if (!actionUrl) {
+          //if action hasn't overridden the url, use the default template one
+          actionUrl = this.template;
+        }
         this.setUrlParams(o, params, actionUrl);
         return { url: o.url, params: o.params };
       }
@@ -501,6 +505,17 @@ angular.module('gzResource', ['ng']).
           actions[action].url //GET .url
         );
         return { url: urlAndParams.url, params: urlAndParams.params };
+      };
+
+      //'Non-instance' version of $getUrlAndParamsFor
+      //- we need to pass params in, as we don't have an instance to
+      //  have contained params
+      Resource.getUrlFor = function(action, params) {
+        var urlAndParams = route.getUrlAndParams(
+          extend({}, extractParams(params, {}), params),
+          actions[action].url //GET .url
+        );
+        return urlAndParams.url;
       };
 
       forEach(actions, function(action, name) {
@@ -553,6 +568,21 @@ angular.module('gzResource', ['ng']).
                                     defaultResponseInterceptor;
           var responseErrorInterceptor = action.interceptor && action.interceptor.responseError ||
                                     undefined;
+
+          // New - if array, store some additional information to allow us to
+          // refresh the data from the server (the original ngResource did not
+          // allow instance-calls of actions from arrays/collections,
+          // so myCollection.query() was not possible - we are now going to
+          // allow this)
+          if (action.isArray) {
+            value._retrievedWith = {
+              action: name,
+              settings: action,
+              params: params
+            };
+            //add methods to array (such as $query, etc)
+            extend(value, Resource._arrayInstanceMethods);
+          }
 
           forEach(action, function(value, key) {
             if (key != 'params' && key != 'isArray' && key != 'interceptor') {
@@ -642,6 +672,29 @@ angular.module('gzResource', ['ng']).
           var result = Resource[name].call(this, params, this, success, error);
           return result.$promise || result;
         };
+
+        //New: the above actions (beginning with '$') only get added to single
+        //entities. We also need methods to allow actions on an array, such
+        //as running $query() to update it again.
+        //We only do this for "isArray" methods ('query', etc)
+        //Because arrays don't get created with 'new Resource', we don't add
+        //these to prototype, but copy them across manually after array is
+        //created
+        Resource._arrayInstanceMethods = {};
+        if (action.isArray) {
+          Resource._arrayInstanceMethods['$' + name] = function(params, success, error) {
+            if (isFunction(params)) {
+              error = success; success = params; params = {};
+            }
+            var result = Resource[name].call(this, params, this, success, error);
+            window.console.log(result.$promise?'resulthaspromise':'resultnopromise');
+            return result.$promise || result;
+          };
+        }
+        window.console.warn(name);
+        if (url.match(/notifications/)) {
+          window.console.dir(Resource);
+        }
       });
 
       Resource.bind = function(additionalParamDefaults){
