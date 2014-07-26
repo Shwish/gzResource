@@ -680,7 +680,9 @@ angular.module('gzResource', ['ng']).
         //Because arrays don't get created with 'new Resource', we don't add
         //these to prototype, but copy them across manually after array is
         //created
-        Resource._arrayInstanceMethods = {};
+        if (!Resource._arrayInstanceMethods) {
+          Resource._arrayInstanceMethods = {};
+        }
         if (action.isArray) {
           Resource._arrayInstanceMethods['$' + name] = function(params, success, error) {
             if (isFunction(params)) {
@@ -690,10 +692,6 @@ angular.module('gzResource', ['ng']).
             window.console.log(result.$promise?'resulthaspromise':'resultnopromise');
             return result.$promise || result;
           };
-        }
-        window.console.warn(name);
-        if (url.match(/notifications/)) {
-          window.console.dir(Resource);
         }
       });
 
