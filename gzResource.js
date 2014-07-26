@@ -562,6 +562,15 @@ angular.module('gzResource', ['ng']).
           /* jshint +W086 */ /* (purposefully fall through case statements) */
 
           var isInstanceCall = this instanceof Resource;
+          //new: handle case where instance call is Array..
+          if (!isInstanceCall &&
+              //then check instance of array (use Object.toString as Array.toString outputs contents)
+              Object.prototype.toString.call(this) === '[object Array]' &&
+              //then check array was created with gzResource (check various properties)
+              this._retrievedWith && this._retrievedWith.action &&
+              this._retrievedWith.settings && this._retrievedWith.settings.isArray) {
+            isInstanceCall = true;
+          }
           var value = isInstanceCall ? data : (action.isArray ? [] : new Resource(data));
           var httpConfig = {};
           var responseInterceptor = action.interceptor && action.interceptor.response ||
@@ -575,6 +584,11 @@ angular.module('gzResource', ['ng']).
           // so myCollection.query() was not possible - we are now going to
           // allow this)
           if (action.isArray) {
+            if (isInstanceCall && typeof params === 'undefined') {
+              //if calling eg $query() on an instance without params, reuse old
+              //params. Checked for undefined, to allow null to be set explicitly
+              params = value._retrievedWith.params; //the value from original call
+            }
             value._retrievedWith = {
               action: name,
               settings: action,
