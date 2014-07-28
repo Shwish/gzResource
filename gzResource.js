@@ -499,23 +499,15 @@ angular.module('gzResource', ['ng']).
         }
       }
 
-      Resource.prototype.$getUrlAndParamsFor = function(action) {
-        var urlAndParams = route.getUrlAndParams(
-          extend({}, extractParams(this, {}), {}),
-          actions[action].url //GET .url
-        );
-        return { url: urlAndParams.url, params: urlAndParams.params };
-      };
-
-      //'Non-instance' version of $getUrlAndParamsFor
-      //- we need to pass params in, as we don't have an instance to
-      //  have contained params
-      Resource.getUrlFor = function(action, params) {
-        var urlAndParams = route.getUrlAndParams(
-          extend({}, extractParams(params, {}), params),
-          actions[action].url //GET .url
-        );
-        return urlAndParams.url;
+      //returns true if obj is instance of Resource, or is an Array which
+      //has been constructed as a Collection (of Resource)
+      Resource.isInstanceOfResourceOrCollection = function(obj) {
+        return ((obj instanceof Resource) ||
+                //then check instance of array (use Object.toString as Array.toString outputs contents)
+                (Object.prototype.toString.call(obj) === '[object Array]' &&
+                 //then check array was created with gzResource (check various properties)
+                 obj._retrievedWith && obj._retrievedWith.action &&
+                 obj._retrievedWith.settings && obj._retrievedWith.settings.isArray));
       };
 
       //Allow extension of our 'prototype' for arrays - that is, methods
@@ -528,6 +520,31 @@ angular.module('gzResource', ['ng']).
         }
         Resource._arrayInstanceMethods[methodName] = method;
       };
+
+      Resource.getUrlAndParamsFor = function(action, obj, params) {
+        var urlAndParams = route.getUrlAndParams(
+          extend({}, extractParams(obj, {}), params),
+          actions[action].url //GET .url
+        );
+        return { url: urlAndParams.url, params: urlAndParams.params };
+      };
+
+      Resource.prototype.$getUrlAndParamsFor = function(action) {
+        return Resource.getUrlAndParamsFor(action, this, {});
+      };
+
+      //Version of the above for array/collection instances
+      Resource.defineArrayInstanceMethod('$getUrlAndParamsFor', function(action) {
+        return Resource.getUrlAndParamsFor(action, this._retrievedWith.params, this._retrievedWith.params);
+      });
+
+      //'Non-instance' version of $getUrlAndParamsFor
+      //- we need to pass params in, as we don't have an instance to
+      //  have contained params
+      Resource.getUrlFor = function(action, params) {
+        return Resource.getUrlAndParamsFor(action, params, params).url;
+      };
+
 
       forEach(actions, function(action, name) {
         var hasBody = /^(POST|PUT|PATCH)$/i.test(action.method);
@@ -572,16 +589,8 @@ angular.module('gzResource', ['ng']).
           }
           /* jshint +W086 */ /* (purposefully fall through case statements) */
 
-          var isInstanceCall = this instanceof Resource;
-          //new: handle case where instance call is Array..
-          if (!isInstanceCall &&
-              //then check instance of array (use Object.toString as Array.toString outputs contents)
-              Object.prototype.toString.call(this) === '[object Array]' &&
-              //then check array was created with gzResource (check various properties)
-              this._retrievedWith && this._retrievedWith.action &&
-              this._retrievedWith.settings && this._retrievedWith.settings.isArray) {
-            isInstanceCall = true;
-          }
+          //new: handle case where instance call is Array.. (previously it only detected instanceof Resource)
+          var isInstanceCall = Resource.isInstanceOfResourceOrCollection(this);
           var value = isInstanceCall ? data : (action.isArray ? [] : new Resource(data));
           var httpConfig = {};
           var responseInterceptor = action.interceptor && action.interceptor.response ||
