@@ -518,6 +518,17 @@ angular.module('gzResource', ['ng']).
         return urlAndParams.url;
       };
 
+      //Allow extension of our 'prototype' for arrays - that is, methods
+      //which get copied across to array instances
+      //- we use this internally, but also allow for extension from outside
+      //  so child-classes can define their own array instance methods
+      Resource.defineArrayInstanceMethod = function(methodName, method) {
+        if (!Resource._arrayInstanceMethods) {
+          Resource._arrayInstanceMethods = {};
+        }
+        Resource._arrayInstanceMethods[methodName] = method;
+      };
+
       forEach(actions, function(action, name) {
         var hasBody = /^(POST|PUT|PATCH)$/i.test(action.method);
 
@@ -694,18 +705,15 @@ angular.module('gzResource', ['ng']).
         //Because arrays don't get created with 'new Resource', we don't add
         //these to prototype, but copy them across manually after array is
         //created
-        if (!Resource._arrayInstanceMethods) {
-          Resource._arrayInstanceMethods = {};
-        }
         if (action.isArray) {
-          Resource._arrayInstanceMethods['$' + name] = function(params, success, error) {
+          Resource.defineArrayInstanceMethod('$' + name, function(params, success, error) {
             if (isFunction(params)) {
               error = success; success = params; params = {};
             }
             var result = Resource[name].call(this, params, this, success, error);
             window.console.log(result.$promise?'resulthaspromise':'resultnopromise');
             return result.$promise || result;
-          };
+          });
         }
       });
 
