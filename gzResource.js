@@ -720,7 +720,7 @@ angular.module('gzResource', ['ng']).
               error = success; success = params; params = {};
             }
             var result = Resource[name].call(this, params, this, success, error);
-            window.console.log(result.$promise?'resulthaspromise':'resultnopromise');
+            //window.console.log(result.$promise?'resulthaspromise':'resultnopromise');
             return result.$promise || result;
           });
         }
